@@ -25,7 +25,21 @@ def download_file(url, folder):
         print(f"Failed to download {url}: {e}")
 
 def download_page(url, folder):
-    pass
+    response = requests.get(url)
+    response.raise_for_status()
+    soup = BeautifulSoup(response.text, "html_parser")
+
+    for tag in soup.find_all(["img", "link", "script"]):
+        attr = "src" if tag.name in ["img", "script"] else "href"
+        if tag.has_attr(attr):
+            asset_url = urljoin(url, tag[attr])
+            asset_filename = download_file(asset_url, folder)
+            if asset_filename:
+                tag[attr] = os.path.basename(asset_filename)
+
+    page_filename = os.path.join(folder, "index.html")
+    with open(page_filename, "w", encoding="utf-8") as file:
+        file.write(str(soup))
 
 while run:
     print("Menu")
