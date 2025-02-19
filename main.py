@@ -12,6 +12,21 @@ def check_url(urls):
 def chech_destination(path):
     pass
 
+def download_file(url, folder):
+    try:
+        response = requests.get(url, stream=True)
+        response.raise_for_status()
+        filename = os.path.join(folder, os.path.basename(urlparse(url).path))
+        with open(filename, "wb") as file:
+            for chunk in response.iter_content(1024):
+                file.write(chunk)
+        return filename
+    except Exception as e:
+        print(f"Failed to download {url}: {e}")
+
+def download_page(url, folder):
+    pass
+
 while run:
     print("Menu")
     print("Please choose what do you wish to do:")
