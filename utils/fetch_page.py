@@ -4,7 +4,7 @@ import requests
 from urllib.parse import urljoin, urlparse
 from bs4 import BeautifulSoup
 
-visited_urls = set()  
+visited_urls = set()
 
 def download_website(url, folder):
     """Main function to start downloading the website."""
@@ -13,9 +13,9 @@ def download_website(url, folder):
 
     crawl_page(url, folder)
 
-def crawl_page(url, folder):
+def crawl_page(url, folder, depth=0, max_depth=3):
     """Crawls and downloads a webpage and its resources."""
-    if url in visited_urls:
+    if url in visited_urls or depth > max_depth:
         return  
 
     print(f"Downloading: {url}")
@@ -46,7 +46,7 @@ def crawl_page(url, folder):
     with open(save_path, 'w', encoding='utf-8') as file:
         file.write(str(soup))
 
-    crawl_internal_links(soup, url, folder)
+    crawl_internal_links(soup, url, folder, depth + 1)
 
 def update_assets(soup, base_url, folder):
     """Finds and downloads assets like CSS, JS, and images."""
@@ -120,13 +120,13 @@ def update_css_file(css_path, base_url):
     with open(css_path, 'w', encoding='utf-8') as file:
         file.write(css_content)
 
-def crawl_internal_links(soup, base_url, folder):
+def crawl_internal_links(soup, base_url, folder, depth):
     """Finds and crawls internal links."""
     for link in soup.find_all('a', href=True):
         link_url = urljoin(base_url, link['href'])
         parsed_link = urlparse(link_url)
         parsed_base = urlparse(base_url)
 
-        # Only follow links that belong to the same website
         if parsed_link.netloc == parsed_base.netloc:
-            crawl_page(link_url, folder)
+            crawl_page(link_url, folder, depth)
+
